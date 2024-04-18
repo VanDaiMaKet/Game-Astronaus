@@ -25,6 +25,9 @@ public:
 
 	bool LoadImg(string path, SDL_Renderer* des);
 
+	bool loadFromRenderedText(string textureText, SDL_Color textColor, TTF_Font* font);
+
+
 	void Render(SDL_Renderer* des, const SDL_Rect* clip = NULL);
 
 	void Free();

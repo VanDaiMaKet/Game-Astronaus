@@ -35,6 +35,9 @@ bool BaseObject::LoadImg(string path, SDL_Renderer* des)
 
 }
 
+
+
+
 void BaseObject::Render(SDL_Renderer* des, const SDL_Rect* clip) {
 	SDL_Rect renderQuad = { rect_.x, rect_.y, rect_.w, rect_.h };
 	if (clip != NULL)
@@ -44,6 +47,8 @@ void BaseObject::Render(SDL_Renderer* des, const SDL_Rect* clip) {
 	}
 	SDL_RenderCopy(des, object_, clip, &renderQuad);
 }
+
+
 
 void BaseObject::Free()
 {
