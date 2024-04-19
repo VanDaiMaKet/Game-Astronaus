@@ -15,8 +15,7 @@ class MapGame
 public:
 	MapGame() { ; }
 	~MapGame() { ; };
-	//void LoadMap(string filetext);
-	void LoadMap(const char* filetext);
+	void LoadMap(string filetext);
 	void LoadTileImage(SDL_Renderer* screen);
 	void RenderMap(SDL_Renderer* screen);
 	Map GetMap() const { return map_; }

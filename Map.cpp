@@ -1,42 +1,41 @@
 #include "Map.h"
 
-void MapGame::LoadMap(const char* filetext) {
-	FILE* file = NULL;
-	fopen_s(&file, filetext, "rb");
-	if (file == NULL) {
-		cout << "Error!can't open file";
+void MapGame::LoadMap(string filetext) {
+	map_.x_max = 0;
+	map_.y_max = 0;
+	map_.x_start = 0;
+	map_.y_start = 0;
+	ifstream file(filetext);
+	if (!file.is_open()) {
+		cout << "Error to open file txt\n";
 		return;
 	}
-	map_.x_max = 0;
-	map_.y_start = 0;
+	else cout << "file can open\n";
 	for (int i = 0; i < MAX_MAP_HEIGHT; i++) {
 		for (int j = 0; j < MAX_MAP_WIDTH; j++) {
-			fscanf_s(file, "%d", &map_.tile[i][j]);
-			int value = map_.tile[i][j];
-			if (value > 0) {
-				if (j > map_.x_max) map_.x_max = j;
-				if (i > map_.y_max) map_.y_max = i;
+			file >> map_.tile[i][j];
+			int n = map_.tile[i][j];
+			if (n > 0) {
+				if (i >= map_.y_max) map_.y_max = i;
+				if (j >= map_.x_max) map_.x_max = j;
 			}
 		}
 	}
 	map_.x_max = (map_.x_max + 1) * TILE_SIZE;
 	map_.y_max = (map_.y_max + 1) * TILE_SIZE;
-	map_.x_start = 0;
-	map_.y_start = 0;
 	map_.filePath = filetext;
-	fclose(file);
+	file.close();
 }
-void MapGame::LoadTileImage(SDL_Renderer* screen) {
-	char fileimg[30];
-	FILE* file = NULL;
+
+void MapGame::LoadTileImage(SDL_Renderer* des) {
+	string file;
 	for (int i = 0; i < MAX_TILE_IMAGE; i++) {
-		sprintf_s(fileimg, "image/%d.png", i);
-		fopen_s(&file, fileimg, "rb");
-		if (file == NULL) continue;
-		fclose(file);
-		tileMap_[i].LoadImg(fileimg, screen);
+		string num = to_string(i);
+		file = "image//" + num + ".png";
+		tileMap_[i].LoadImg(file, des);
 	}
 }
+
 void MapGame::RenderMap(SDL_Renderer* screen) {
 	int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 	int map_x = 0, map_y = 0;
@@ -60,37 +59,3 @@ void MapGame::RenderMap(SDL_Renderer* screen) {
 	}
 }
 
-//void MapGame::LoadMap(string filetext) {
-//	map_.x_max = 0;
-//	map_.y_max = 0;
-//	map_.x_start = 0;
-//	map_.y_start = 0;
-//	ifstream file(filetext);
-//	if (!file.is_open()) {
-//		cout << "Error to open file txt\n";
-//		return;
-//	}
-//	else cout << "file can open\n";
-//	for (int i = 0; i < MAX_MAP_HEIGHT; i++) {
-//		for (int j = 0; j < MAX_MAP_WIDTH; j++) {
-//			file >> map_.tile[i][j];
-//			int n = map_.tile[i][j];
-//			if (n > 0) {
-//				if (i >= map_.y_max) map_.y_max = i;
-//				if (j >= map_.x_max) map_.x_max = j;
-//			}
-//		}
-//	}
-//	map_.x_max = (map_.x_max + 1) * TILE_SIZE;
-//	map_.y_max = (map_.y_max + 1) * TILE_SIZE;
-//	map_.filePath = filetext;
-//	file.close();
-//}
-//void MapGame::LoadTileImage(SDL_Renderer* des) {
-//	string file;
-//	for (int i = 0; i < MAX_TILE_IMAGE; i++) {
-//		string num = to_string(i);
-//		file = "image//" + num + ".png";
-//		tileMap_[i].LoadImg(file, des);
-//	}
-//}/*

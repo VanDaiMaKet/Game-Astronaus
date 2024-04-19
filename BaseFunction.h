@@ -11,7 +11,6 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
-
 using namespace std;
 
 static SDL_Window* gWindow = NULL;
@@ -19,7 +18,6 @@ static SDL_Renderer* gScreen = NULL;
 static SDL_Event gEvent;
 static SDL_Texture* gBackGround = NULL;
 static SDL_Rect srcRect = { 0, 0, 0, 0 };
-static TTF_Font* gFont = NULL;
 
 static SDL_Color violet = { 173, 22, 196, 255 };
 static SDL_Color whileblue = { 180,189,235,255 };
@@ -30,12 +28,9 @@ static SDL_Color red = { 247 ,15,15,255 };
 static Mix_Chunk* gSoundBullet = NULL;
 static Mix_Chunk* gSoundHit = NULL;
 
-
-
 //Window
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 640;
-const int SCREEN_BPP = 32;//Bits Per Pixel
 
 const int COLLOR_KEY_R = 255;//transparent white background of image
 const int COLLOR_KEY_G = 255;
@@ -84,20 +79,17 @@ typedef struct Map {
 };
 
 
-#define PLAYER_SPEED 0.4
+#define PLAYER_SPEED 0.5
 #define FALLING_SPEED 0.07
 #define MAX_FALLING_SPEED 0.6
 #define UP_CHANGE 4.6
 
-#define MONSTER_SPEED 0.4
-#define REPEL 64
+#define MONSTER_SPEED 0.3
+#define REPEL 40
 
 
 #define DAM_TREE 0.05
 #define DAM_BULLET_PLAYER 5
 #define DAM_FLY_MONSTER 0.04
-
-
-
 
 #endif

@@ -151,7 +151,7 @@ void Monster::HanleMoveType(SDL_Renderer* des, MainCharacter& Player){
 					input_type.up = 1;
 					input_type.down = 0;
 				}
-				if ((y_pos_player > y_pos ) && (onGround==false)) {
+				else if ((y_pos_player > y_pos ) && (onGround==false)) {
 					input_type.down = 1;
 					input_type.up = 0;
 				}
@@ -197,7 +197,7 @@ void Monster::HanleMoveType(SDL_Renderer* des, MainCharacter& Player){
 				}
 				LoadImg("image/alien_fly_left.png", des);
 			}
-			/*if (x_pos_player - x_pos < 20 && x_pos_player - x_pos > -20 && y_pos_player - y_pos < 20 && y_pos_player - y_pos > -20)*/ 
+
 			if (((x_pos_player - x_pos < 50 && x_pos_player - x_pos > 0 )||(x_pos - x_pos_player < 50 && x_pos - x_pos_player > 0))&& y_pos_player - y_pos < 20 && y_pos_player - y_pos > -20)
 			{
 				input_type.left = 0;

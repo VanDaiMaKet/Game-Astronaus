@@ -198,11 +198,11 @@ void MainCharacter::Update(Map& map) {
 void MainCharacter::MapCollisionCheck(Map& map) {
 	int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 	// kiểm tra theo chiều ngang
-	int heightMin = (h_frame_ < TILE_SIZE ? h_frame_ : TILE_SIZE) - 30 ;
+	int heightMin = (h_frame_ < TILE_SIZE ? h_frame_ : TILE_SIZE) - 30;
 	x1 = (x_pos_ + x_change_) / TILE_SIZE;//tìm nhân vật ở ô thứ bao nhiêu
 	x2 = (x_pos_ + x_change_ + w_frame_ - 1) / TILE_SIZE;
 	y1 = (y_pos_ + 5 )/ TILE_SIZE;
-	y2 = (y_pos_ + heightMin - 1) / TILE_SIZE;
+	y2 = (y_pos_ + heightMin -1 ) / TILE_SIZE;
 	if (x1 >= 0 && x2 <= MAX_MAP_WIDTH && y1 >= 0 && y2 <= MAX_MAP_HEIGHT) {
 		if (x_change_ > 0) {//tiến
 			if (map.tile[y1][x2]==1||map.tile[y1][x2]==2 || map.tile[y1][x2]==3 || map.tile[y1][x2]==6 || map.tile[y1][x2]==7 || map.tile[y2][x2]==1||map.tile[y2][x2] ==2 || map.tile[y2][x2] ==3 || map.tile[y2][x2] ==6 || map.tile[y2][x2] ==7 ) {
@@ -210,7 +210,7 @@ void MainCharacter::MapCollisionCheck(Map& map) {
 				x_pos_ -= w_frame_ + 1;
 				x_change_ = 0;
 			}
-			else if (map.tile[y1][x2] == 4 || map.tile[y1][x2] == 5 || map.tile[y2][x2] == 4 || map.tile[y2][x2] == 5) {
+			if (map.tile[y1][x2] == 4 || map.tile[y1][x2] == 5 || map.tile[y2][x2] == 4 || map.tile[y2][x2] == 5) {
 				healthPlayer -= DAM_TREE;
 			}
 		}
@@ -244,7 +244,7 @@ void MainCharacter::MapCollisionCheck(Map& map) {
 		}
 		else if (y_change_ < 0) {
 			if (map.tile[y1][x1] == 1 || map.tile[y1][x1] == 2 || map.tile[y1][x1] == 3 || map.tile[y1][x1] == 6 || map.tile[y1][x1] == 7 || map.tile[y1][x2] == 1 || map.tile[y1][x2] == 2 || map.tile[y1][x2] == 3 || map.tile[y1][x2] == 6 || map.tile[y1][x2] == 7) {
-				y_pos_ = (y1 + 1) * TILE_SIZE;
+				y_pos_ = (y1 + 1) * TILE_SIZE ;
 				y_change_ = 0;
 			}
 			else if (map.tile[y1][x1] == 4 || map.tile[y1][x1] == 5 || map.tile[y1][x2] == 4 || map.tile[y1][x2] == 5) {

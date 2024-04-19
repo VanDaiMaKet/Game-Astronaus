@@ -6,13 +6,7 @@
 #include "Monster.h"
 #include "Time.h"
 
-MainCharacter player;
-MapGame map;
-BaseObject Menu;
-BaseObject textmenu[2];
-BaseObject gTime;
-BaseObject gFMDie;
-
+TTF_Font* gFont = NULL;
 
 
 vector <Monster*> CreateMonsterList() {
@@ -40,9 +34,6 @@ vector <Monster*> CreateMonsterList() {
 }
 
 bool init();
-//Loads Background
-bool loadBackGround();
-//Frees media and shuts down SDL
 void close();
 
 bool BaseObject::loadFromRenderedText(string textureText, SDL_Color textColor, TTF_Font* font) {
@@ -71,6 +62,8 @@ bool BaseObject::loadFromRenderedText(string textureText, SDL_Color textColor, T
 
 
 int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
+	BaseObject Menu;
+	BaseObject textmenu[2];
 	Menu.LoadImg("image/menu.png",des);
 	if (Menu.GetObject() == NULL) return 1;
 	Menu.Render(des, NULL);
@@ -106,6 +99,7 @@ int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
 					else {
 						if (selected[i] == true) {
 							selected[i] == false;
+							textmenu[i].Free();
 							if (i == 0)textmenu[0].loadFromRenderedText("START", whileblue, font);
 							if (i == 1)textmenu[1].loadFromRenderedText("EXIT", whileblue, font);
 						}
@@ -120,6 +114,8 @@ int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
 					ym = e.button.y;
 					for (int i = 0; i < 2; i++) {
 						if (xm >= textmenu[i].GetRect().x && xm <= textmenu[i].GetRect().x + textmenu[i].GetRect().w && ym >= textmenu[i].GetRect().y && ym <= textmenu[i].GetRect().y + textmenu[i].GetRect().h) {
+							textmenu[i].Free();
+							Menu.Free();
 							return i;
 						}
 					}
@@ -220,24 +216,9 @@ bool init()
 	return success;
 }
 
-bool loadBackGround() {
-	//bool load = map.GetMap().LoadBackground("image/gBackGround.png", gScreen);
-	bool load = map.GetMap().LoadBackground("image/gBackGround.png", gScreen);
-	if (load == NULL) return false;
-	return true;
-}
 
 void close()
 {
-	SDL_DestroyTexture(gBackGround);
-	player.Free();
-	gTime.Free();
-	Menu.Free();
-	textmenu[0].Free();
-	textmenu[1].Free();
-	player.healPlayer.Free();
-	gFMDie.Free();
-	//Destroy window	
 	SDL_DestroyRenderer(gScreen);
 	SDL_DestroyWindow(gWindow);
 	gWindow = NULL;
@@ -257,24 +238,6 @@ void close()
 
 int main(int argc, char* args[]) {
 	if (!init()) printf("Failed to initialize!\n");//Start up SDL and create window
-	if (!loadBackGround()) printf("Failed to load media!\n");//Load media
-
-	Timer timer;
-	stringstream timeText;
-	gTime.SetRect(1040,4);
-	gFMDie.SetRect(850, 4);
-	string s;
-	map.LoadMap("image/maptile.txt");
-	map.LoadTileImage(gScreen);
-
-	player.LoadImg("image//player_run_right.png", gScreen);
-	player.LoadFrame();
-	player.pathHealthPlayer = "image//health_player.png";
-	player.healthPlayerMax = 100.0;
-	player.healthPlayer = player.healthPlayerMax;
-	player.LoadHealPlayer(gScreen);
-
-	vector<Monster*> monsterList = CreateMonsterList();
 
 	bool quit = false;
 	bool thoat_ra_menu = false;
@@ -282,13 +245,36 @@ int main(int argc, char* args[]) {
 	if (statemenu == 1) {
 		quit = true;
 	}
-	
-	while (!quit&&statemenu!=1) {
-		while (thoat_ra_menu==false) {
+
+	while (!quit) {
+
+		MainCharacter player;
+		MapGame map;
+		BaseObject gTime;
+		BaseObject gFMDie;
+		map.GetMap().LoadBackground("image/gBackGround.png", gScreen);
+		Timer timer;
+		stringstream timeText;
+		gTime.SetRect(1040, 4);
+		gFMDie.SetRect(850, 4);
+		string s;
+		map.LoadMap("image/maptile.txt");
+		map.LoadTileImage(gScreen);
+
+		player.LoadImg("image//player_run_right.png", gScreen);
+		player.LoadFrame();
+		player.pathHealthPlayer = "image//health_player.png";
+		player.healthPlayerMax = 100.0;
+		player.healthPlayer = player.healthPlayerMax;
+		player.LoadHealPlayer(gScreen);
+
+		vector<Monster*> monsterList = CreateMonsterList();
+		while (thoat_ra_menu == false && quit==false) {
 			int mfdie = 0;
 			statemenu = 2;
+			SDL_RenderClear(gScreen);
 			while (SDL_PollEvent(&gEvent) != 0) {//Handle events on queue
-			//User requests quit
+				//User requests quit
 				if (gEvent.type == SDL_QUIT) {
 					quit = true;
 				}
@@ -300,7 +286,6 @@ int main(int argc, char* args[]) {
 
 			SDL_SetRenderDrawColor(gScreen, 0xFF, 0xFF, 0xFF, 0xFF);
 			//Clear screen
-			SDL_RenderClear(gScreen);
 			Map mapgame = map.GetMap();
 			mapgame.RenderBackground(gBackGround, gScreen);
 			player.SetMapXY(mapgame.x_start, mapgame.y_start);
@@ -330,16 +315,16 @@ int main(int argc, char* args[]) {
 			player.HandHealPlayer(gScreen);
 			timeText.str("");
 			timeText << "Time : " << (timer.getTicks() / 1000.f);
-			if (!gTime.loadFromRenderedText(timeText.str().c_str(), violet,gFont))
+			if (!gTime.loadFromRenderedText(timeText.str().c_str(), violet, gFont))
 			{
 				printf("Unable to render time texture!\n");
 			}
-			
+
 			gTime.Render(gScreen, NULL);
 			s = "KILLED: " + to_string(mfdie);
-		     gFMDie.loadFromRenderedText(s, violet, gFont);
+			gFMDie.loadFromRenderedText(s, violet, gFont);
 			gFMDie.Render(gScreen, NULL);
-			
+
 			SDL_RenderPresent(gScreen);
 			if (player.healthPlayer <= 0) {
 				gTime.loadFromRenderedText("GAME OVER", red, gFont);
@@ -348,22 +333,47 @@ int main(int argc, char* args[]) {
 				SDL_RenderPresent(gScreen);
 				SDL_Delay(3000);
 				thoat_ra_menu = true;
+				quit = true;
 			}
-			if (mfdie == 30) {
-				gTime.loadFromRenderedText("YOU WIN", red , gFont);
+			if (mfdie == 30 || (player.GetXPosPlayer() > 4383 && player.GetXPosPlayer() < 4480 && player.GetYPosPlayer() > 384)) {
+				gTime.loadFromRenderedText("YOU WIN", red, gFont);
 				gTime.SetRect(400, 300);
 				gTime.Render(gScreen, NULL);
 				SDL_RenderPresent(gScreen);
 				SDL_Delay(3000);
 				thoat_ra_menu = true;
-			}
+				quit = true;
 
+			}
+			
+			/*if (thoat_ra_menu == true) {
+				
+				int m = ShowMenu(gScreen, gFont);
+				if (m == 1) {
+					quit = true;
+					thoat_ra_menu == true;
+				}
+				else {
+					player.Free();
+					gTime.Free();
+					player.healPlayer.Free();
+					gFMDie.Free();
+					for (int i = 0; i < monsterList.size(); i++) {
+						Monster* onemonster = monsterList.at(i);
+						if (onemonster != NULL) {
+							onemonster->Free();
+						}
+					}
+					quit = false;
+					thoat_ra_menu == false;
+
+				}
+			}*/
 			if (quit == true) break;
 		}
-		if (quit == true) break;
-		if (thoat_ra_menu == true) break;
+
 	}
-	//Free resources and close SDL
+
 	close();
 	return 0;
 }
