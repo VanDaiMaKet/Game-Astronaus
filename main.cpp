@@ -7,22 +7,22 @@
 #include "Time.h"
 
 TTF_Font* gFont = NULL;
+TTF_Font* ketqua = NULL;
 
-
-vector <Monster*> CreateMonsterList() {
+vector <Monster*> CreateMonsterList(int soluongquai, double mau) {
 	vector <Monster*> monsterList;
-	Monster* monsters = new Monster[30];
-	for (int i = 0; i < 30; i++) {
+	Monster* monsters = new Monster[soluongquai];
+	for (int i = 0; i < soluongquai; i++) {
 		Monster* onemonster = (monsters + i);
 		if (onemonster != NULL) {
 			onemonster->LoadImg("image/alien_fly_left.png", gScreen);
 			onemonster->pathHealthFlyMonster = "image/health_monster.png";
-			onemonster->healthFlyMonsterMax = 60.0;
+			onemonster->healthFlyMonsterMax = mau;
 			onemonster->healthFlyMonster = onemonster->healthFlyMonsterMax;
 			onemonster->LoadHealFlyMonster(gScreen);
 			onemonster->LoadFrame();
 			onemonster->SetTypeMove(Monster::F_LEFT);
-			onemonster->SetXpos(400+i*150);
+			onemonster->SetXpos(400+i*(4700/soluongquai));
 			onemonster->SetYpos(448-(rand()%7)*64);
 			int pos_a = onemonster->GetXpos() - 300;
 			int pos_b = onemonster->GetXpos() + 300;
@@ -59,8 +59,6 @@ bool BaseObject::loadFromRenderedText(string textureText, SDL_Color textColor, T
 	}
 	return object_ != NULL;
 }
-
-
 int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
 	BaseObject Menu;
 	BaseObject textmenu[2];
@@ -69,52 +67,48 @@ int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
 	Menu.Render(des, NULL);
 	textmenu[0].SetRect(170, 200);
 	textmenu[1].SetRect(170, 260);
-	textmenu[0].loadFromRenderedText("START", whileblue,  font);
-	textmenu[1].loadFromRenderedText("EXIT", whileblue,  font);
-	textmenu[0].Render(des, NULL);
-	textmenu[1].Render(des,NULL);
-	bool selected[2] = { false,false };
-	SDL_Event e;
+	textmenu[0].loadFromRenderedText("NEW GAME", whileblue,  font);
+	textmenu[1].loadFromRenderedText("QUIT", whileblue,  font);
+	
 	int xm = 0;
 	int ym = 0;
-	bool q = false;
-	while (q == false) {
-		while (SDL_PollEvent(&e) != 0) {
-			switch (e.type) {
+	bool selected[2] = { false,false };
+	while (1) {
+		while (SDL_PollEvent(&gEvent) != 0) {
+			switch (gEvent.type) {
 			case SDL_QUIT:
 				return 1;
 				break;
 			case SDL_MOUSEMOTION:
-			{
-				xm = e.motion.x;
-				ym = e.motion.y;
+				xm = gEvent.motion.x;
+				ym = gEvent.motion.y;
 				for (int i = 0; i < 2; i++) {
 					if (xm >= textmenu[i].GetRect().x && xm <= textmenu[i].GetRect().x + textmenu[i].GetRect().w && ym >= textmenu[i].GetRect().y && ym <= textmenu[i].GetRect().y + textmenu[i].GetRect().h) {
 						if (selected[i] == false) {
 							selected[i] = true;
-							if (i==0)textmenu[0].loadFromRenderedText("START", pink,font);
-							if (i==1)textmenu[1].loadFromRenderedText("EXIT", pink, font);
+							if (i==0)textmenu[0].loadFromRenderedText("NEW GAME", pink,font);
+							if (i==1)textmenu[1].loadFromRenderedText("QUIT", pink, font);
 						}
 					}
 					else {
 						if (selected[i] == true) {
 							selected[i] == false;
 							textmenu[i].Free();
-							if (i == 0)textmenu[0].loadFromRenderedText("START", whileblue, font);
-							if (i == 1)textmenu[1].loadFromRenderedText("EXIT", whileblue, font);
+							if (i == 0)textmenu[0].loadFromRenderedText("NEW GAME", whileblue, font);
+							if (i == 1)textmenu[1].loadFromRenderedText("QUIT", whileblue, font);
 						}
 					}
 				}
-			}
 			break;
 			case SDL_MOUSEBUTTONDOWN:
 			{
-				if (e.button.button == SDL_BUTTON_LEFT) {
-					xm = e.button.x;
-					ym = e.button.y;
+				if (gEvent.button.button == SDL_BUTTON_LEFT) {
+					xm = gEvent.button.x;
+					ym = gEvent.button.y;
 					for (int i = 0; i < 2; i++) {
 						if (xm >= textmenu[i].GetRect().x && xm <= textmenu[i].GetRect().x + textmenu[i].GetRect().w && ym >= textmenu[i].GetRect().y && ym <= textmenu[i].GetRect().y + textmenu[i].GetRect().h) {
-							textmenu[i].Free();
+							textmenu[0].Free();
+							textmenu[1].Free();
 							Menu.Free();
 							return i;
 						}
@@ -123,7 +117,7 @@ int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
 			}
 			break;
 			case SDL_KEYDOWN:
-				if (e.key.keysym.sym == SDLK_ESCAPE) {
+				if (gEvent.key.keysym.sym == SDLK_ESCAPE) {
 					return 1;
 				}
 			default:
@@ -142,9 +136,203 @@ int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
 	}
 	return 1;
 }
+int ShowLevel (SDL_Renderer* des, TTF_Font* font) {
+	BaseObject Menu;
+	BaseObject textmenu[2];
+	Menu.LoadImg("image/menu.png", des);
+	if (Menu.GetObject() == NULL) return 1;
+	Menu.Render(des, NULL);
+	textmenu[0].SetRect(170, 200);
+	textmenu[1].SetRect(170, 260);
+	textmenu[0].loadFromRenderedText("EASY", whileblue, font);
+	textmenu[1].loadFromRenderedText("HARD", whileblue, font);
+	int xm = 0;
+	int ym = 0;
+	bool selected[2] = { false,false };
+	while (1) {
+		while (SDL_PollEvent(&gEvent) != 0) {
+			switch (gEvent.type) {
+			case SDL_QUIT:
+				return 1;
+				break;
+			case SDL_MOUSEMOTION:
+				xm = gEvent.motion.x;
+				ym = gEvent.motion.y;
+				for (int i = 0; i < 2; i++) {
+					if (xm >= textmenu[i].GetRect().x && xm <= textmenu[i].GetRect().x + textmenu[i].GetRect().w && ym >= textmenu[i].GetRect().y && ym <= textmenu[i].GetRect().y + textmenu[i].GetRect().h) {
+						if (selected[i] == false) {
+							selected[i] = true;
+							if (i == 0)textmenu[0].loadFromRenderedText("EASY", pink, font);
+							if (i == 1)textmenu[1].loadFromRenderedText("HARD", pink, font);
+						}
+					}
+					else {
+						if (selected[i] == true) {
+							selected[i] == false;
+							textmenu[i].Free();
+							if (i == 0)textmenu[0].loadFromRenderedText("EASY", whileblue, font);
+							if (i == 1)textmenu[1].loadFromRenderedText("HARD", whileblue, font);
+						}
+					}
+				}
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+			{
+				if (gEvent.button.button == SDL_BUTTON_LEFT) {
+					xm = gEvent.button.x;
+					ym = gEvent.button.y;
+					for (int i = 0; i < 2; i++) {
+						if (xm >= textmenu[i].GetRect().x && xm <= textmenu[i].GetRect().x + textmenu[i].GetRect().w && ym >= textmenu[i].GetRect().y && ym <= textmenu[i].GetRect().y + textmenu[i].GetRect().h) {
+							textmenu[0].Free();
+							textmenu[1].Free();
+							Menu.Free();
+							return i;
+						}
+					}
+				}
+			}
+			break;
+			case SDL_KEYDOWN:
+				if (gEvent.key.keysym.sym == SDLK_ESCAPE) {
+					return 1;
+				}
+			default:
+				break;
+			}
 
+		}
+		SDL_SetRenderDrawColor(gScreen, 0xFF, 0xFF, 0xFF, 0xFF);
+		//Clear screen
+		SDL_RenderClear(gScreen);
+		Menu.Render(gScreen, NULL);
+		textmenu[0].Render(gScreen, NULL);
+		textmenu[1].Render(gScreen, NULL);
+		SDL_RenderPresent(gScreen);
 
+	}
+	return 1;
+}
+int ShowPause(SDL_Renderer* des, TTF_Font* font) {
+	BaseObject Menu;
+	BaseObject textmenu[3];
+	Menu.LoadImg("image/pause.png", des);
+	Menu.SetRect(460, 100);
+	if (Menu.GetObject() == NULL) return 1;
+	Menu.Render(des, NULL);
+	textmenu[0].SetRect(520, 250);
+	textmenu[1].SetRect(520, 320);
+	textmenu[2].SetRect(520, 390);
+	textmenu[0].loadFromRenderedText("CONTINUE...", pink, font);
+	textmenu[1].loadFromRenderedText("EXIT TO MAINMENU", pink, font);
+	textmenu[2].loadFromRenderedText("QUIT", pink, font);;
+	int xm = 0;
+	int ym = 0;
+	while (1) {
+		while (SDL_PollEvent(&gEvent) != 0) {
+			switch (gEvent.type) {
+			case SDL_QUIT:
+				return 2;
+				break;
+			break;
+			case SDL_MOUSEBUTTONDOWN:
+			{
+				if (gEvent.button.button == SDL_BUTTON_LEFT) {
+					xm = gEvent.button.x;
+					ym = gEvent.button.y;
+					for (int i = 0; i < 3; i++) {
+						if (xm >= textmenu[i].GetRect().x && xm <= textmenu[i].GetRect().x + textmenu[i].GetRect().w && ym >= textmenu[i].GetRect().y && ym <= textmenu[i].GetRect().y + textmenu[i].GetRect().h) {
+							textmenu[0].Free();
+							textmenu[1].Free();
+							textmenu[2].Free();
+							Menu.Free();
+							return i;
+						}
+					}
+				}
+			}
+			break;
+			case SDL_KEYDOWN:
+				if (gEvent.key.keysym.sym == SDLK_ESCAPE) {
+					return 2;
+				}
+			default:
+				break;
+			}
 
+		}
+		SDL_SetRenderDrawColor(gScreen, 0xFF, 0xFF, 0xFF, 0xFF);
+		//Clear screen
+		/*SDL_RenderClear(gScreen);*/
+		Menu.Render(gScreen, NULL);
+		textmenu[0].Render(gScreen, NULL);
+		textmenu[1].Render(gScreen, NULL);
+		textmenu[2].Render(gScreen, NULL);
+		SDL_RenderPresent(gScreen);
+
+	}
+	return 2;
+}
+int ShowKetqua(SDL_Renderer* des, TTF_Font* font, bool win, bool lose) {
+	BaseObject Menu;
+	BaseObject textmenu[3];
+	if (win == true) Menu.LoadImg("image/win.png", des);
+	else if (lose == true) Menu.LoadImg("image/lo.png", des);
+	Menu.SetRect(460, 100);
+	if (Menu.GetObject() == NULL) return 1;
+	Menu.Render(des, NULL);
+	textmenu[0].SetRect(520, 300);
+	textmenu[1].SetRect(520, 360);
+	textmenu[2].SetRect(520, 420);
+	textmenu[0].loadFromRenderedText("NEW GAME", pink, font);
+	textmenu[1].loadFromRenderedText("EXIT TO MAINMENU", pink, font);
+	textmenu[2].loadFromRenderedText("QUIT", pink, font);;
+	int xm = 0;
+	int ym = 0;
+	while (1) {
+		while (SDL_PollEvent(&gEvent) != 0) {
+			switch (gEvent.type) {
+			case SDL_QUIT:
+				return 2;
+				break;
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+			{
+				if (gEvent.button.button == SDL_BUTTON_LEFT) {
+					xm = gEvent.button.x;
+					ym = gEvent.button.y;
+					for (int i = 0; i < 3; i++) {
+						if (xm >= textmenu[i].GetRect().x && xm <= textmenu[i].GetRect().x + textmenu[i].GetRect().w && ym >= textmenu[i].GetRect().y && ym <= textmenu[i].GetRect().y + textmenu[i].GetRect().h) {
+							textmenu[0].Free();
+							textmenu[1].Free();
+							textmenu[2].Free();
+							Menu.Free();
+							return i;
+						}
+					}
+				}
+			}
+			break;
+			case SDL_KEYDOWN:
+				if (gEvent.key.keysym.sym == SDLK_ESCAPE) {
+					return 2;
+				}
+			default:
+				break;
+			}
+
+		}
+		SDL_SetRenderDrawColor(gScreen, 0xFF, 0xFF, 0xFF, 0xFF);
+		//Clear screen
+		/*SDL_RenderClear(gScreen);*/
+		Menu.Render(gScreen, NULL);
+		textmenu[0].Render(gScreen, NULL);
+		textmenu[1].Render(gScreen, NULL);
+		textmenu[2].Render(gScreen, NULL);
+		SDL_RenderPresent(gScreen);
+
+	}
+	return 2;
+}
 
 bool init()
 {
@@ -216,7 +404,6 @@ bool init()
 	return success;
 }
 
-
 void close()
 {
 	SDL_DestroyRenderer(gScreen);
@@ -235,19 +422,34 @@ void close()
 	SDL_Quit();
 }
 
-
 int main(int argc, char* args[]) {
 	if (!init()) printf("Failed to initialize!\n");//Start up SDL and create window
 
 	bool quit = false;
-	bool thoat_ra_menu = false;
-	int statemenu = ShowMenu(gScreen, gFont);
-	if (statemenu == 1) {
-		quit = true;
-	}
 
 	while (!quit) {
+		int soluongquaibay = 30;
+		double mauquaivat = 50.0;
+		int statemenu = ShowMenu(gScreen, gFont);
+		if (statemenu == 1) {
+			quit = true;
+		}
+		else if (statemenu == 0) {
+			int l = ShowLevel(gScreen, gFont);
+			if (l == 0) {
+				soluongquaibay = 30;
+				mauquaivat = 50.0;
+			}
+			else if (l == 1) {
+				soluongquaibay = 45;
+				mauquaivat = 60.0;
+			}
+		}
 
+	newgame:
+
+		bool isWin = false;
+		bool isLo = false;
 		MainCharacter player;
 		MapGame map;
 		BaseObject gTime;
@@ -260,32 +462,37 @@ int main(int argc, char* args[]) {
 		string s;
 		map.LoadMap("image/maptile.txt");
 		map.LoadTileImage(gScreen);
-
 		player.LoadImg("image//player_run_right.png", gScreen);
 		player.LoadFrame();
 		player.pathHealthPlayer = "image//health_player.png";
-		player.healthPlayerMax = 100.0;
+		player.healthPlayerMax = 150.0;
 		player.healthPlayer = player.healthPlayerMax;
 		player.LoadHealPlayer(gScreen);
-
-		vector<Monster*> monsterList = CreateMonsterList();
-		while (thoat_ra_menu == false && quit==false) {
+		
+		vector<Monster*> monsterList = CreateMonsterList(soluongquaibay, mauquaivat);
+		while (quit==false) {
 			int mfdie = 0;
 			statemenu = 2;
-			SDL_RenderClear(gScreen);
-			while (SDL_PollEvent(&gEvent) != 0) {//Handle events on queue
-				//User requests quit
+			bool isPause = false;
+			while (SDL_PollEvent(&gEvent) != 0) {
 				if (gEvent.type == SDL_QUIT) {
 					quit = true;
 				}
 				if (statemenu == 2) {
 					if (!timer.isStarted()) timer.start();
 				}
+				if (isPause == false) {
+					if (gEvent.type == SDL_KEYDOWN)
+					{
+						if (gEvent.key.keysym.sym == SDLK_p) isPause = true;
+					}
+				}
 				player.HandleAction(gEvent, gScreen, gSoundBullet);
-			}
 
+			}
+			
 			SDL_SetRenderDrawColor(gScreen, 0xFF, 0xFF, 0xFF, 0xFF);
-			//Clear screen
+			SDL_RenderClear(gScreen);
 			Map mapgame = map.GetMap();
 			mapgame.RenderBackground(gBackGround, gScreen);
 			player.SetMapXY(mapgame.x_start, mapgame.y_start);
@@ -325,54 +532,68 @@ int main(int argc, char* args[]) {
 			gFMDie.loadFromRenderedText(s, violet, gFont);
 			gFMDie.Render(gScreen, NULL);
 
-			SDL_RenderPresent(gScreen);
 			if (player.healthPlayer <= 0) {
-				gTime.loadFromRenderedText("GAME OVER", red, gFont);
-				gTime.SetRect(400, 300);
-				gTime.Render(gScreen, NULL);
-				SDL_RenderPresent(gScreen);
-				SDL_Delay(3000);
-				thoat_ra_menu = true;
-				quit = true;
-			}
-			if (mfdie == 30 || (player.GetXPosPlayer() > 4383 && player.GetXPosPlayer() < 4480 && player.GetYPosPlayer() > 384)) {
-				gTime.loadFromRenderedText("YOU WIN", red, gFont);
-				gTime.SetRect(400, 300);
-				gTime.Render(gScreen, NULL);
-				SDL_RenderPresent(gScreen);
-				SDL_Delay(3000);
-				thoat_ra_menu = true;
-				quit = true;
-
-			}
-			
-			/*if (thoat_ra_menu == true) {
-				
-				int m = ShowMenu(gScreen, gFont);
-				if (m == 1) {
-					quit = true;
-					thoat_ra_menu == true;
-				}
-				else {
-					player.Free();
-					gTime.Free();
-					player.healPlayer.Free();
-					gFMDie.Free();
-					for (int i = 0; i < monsterList.size(); i++) {
-						Monster* onemonster = monsterList.at(i);
-						if (onemonster != NULL) {
-							onemonster->Free();
-						}
+				isLo = true;
+				player.Free();
+				gTime.Free();
+				player.healPlayer.Free();
+				gFMDie.Free();
+				for (int i = 0; i < monsterList.size(); i++) {
+					Monster* onemonster = monsterList.at(i);
+					if (onemonster != NULL) {
+						onemonster->Free();
 					}
-					quit = false;
-					thoat_ra_menu == false;
-
 				}
-			}*/
-			if (quit == true) break;
+			}
+			if (mfdie == soluongquaibay || (player.GetXPosPlayer() > 4383 && player.GetXPosPlayer() < 4480 && player.GetYPosPlayer() > 384)) {
+				isWin = true;
+				player.Free();
+				gTime.Free();
+				player.healPlayer.Free();
+				gFMDie.Free();
+				for (int i = 0; i < monsterList.size(); i++) {
+					Monster* onemonster = monsterList.at(i);
+					if (onemonster != NULL) {
+						onemonster->Free();
+					}
+				}
+			}
+			SDL_RenderPresent(gScreen);
+			if (isPause == true) {
+				int m = ShowPause(gScreen, gFont);
+				if (m == 0) {
+					isPause = false;
+				}
+				else if (m == 1) {
+					break;
+				}
+				else if (m == 2) {
+					quit = true;
+					break;
+				}
+			}
+			if (isWin == true || isLo == true) {
+				int n = ShowKetqua(gScreen, gFont, isWin, isLo);
+				if (n == 2) {
+					quit = true;
+					break;
+				}
+				else if (n == 1) {
+					break;
+				}
+				else if (n == 0) {
+					goto newgame;
+				}
+			}
+
+
+
 		}
 
+
 	}
+
+
 
 	close();
 	return 0;
