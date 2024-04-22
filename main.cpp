@@ -8,7 +8,7 @@
 
 TTF_Font* gFont = NULL;
 TTF_Font* ketqua = NULL;
-
+bool haveCo = false;
 vector <Monster*> CreateMonsterList(int soluongquai, double mau) {
 	vector <Monster*> monsterList;
 	Monster* monsters = new Monster[soluongquai];
@@ -60,16 +60,27 @@ bool BaseObject::loadFromRenderedText(string textureText, SDL_Color textColor, T
 	return object_ != NULL;
 }
 int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
+	int num;
 	BaseObject Menu;
-	BaseObject textmenu[2];
+	
+	if (haveCo) {
+		num = 3;
+	}
+	else {
+		num = 2;
+	}
+	BaseObject textmenu[3];
 	Menu.LoadImg("image/menu.png",des);
 	if (Menu.GetObject() == NULL) return 1;
 	Menu.Render(des, NULL);
 	textmenu[0].SetRect(170, 200);
 	textmenu[1].SetRect(170, 260);
 	textmenu[0].loadFromRenderedText("NEW GAME", whileblue,  font);
-	textmenu[1].loadFromRenderedText("QUIT", whileblue,  font);
-	
+	textmenu[1].loadFromRenderedText("QUIT", whileblue, font);
+	if (haveCo) {
+		textmenu[2].SetRect(170, 320);
+		textmenu[2].loadFromRenderedText("CONTINUE...", whileblue, font);
+	}
 	int xm = 0;
 	int ym = 0;
 	bool selected[2] = { false,false };
@@ -82,12 +93,13 @@ int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
 			case SDL_MOUSEMOTION:
 				xm = gEvent.motion.x;
 				ym = gEvent.motion.y;
-				for (int i = 0; i < 2; i++) {
+				for (int i = 0; i < num; i++) {
 					if (xm >= textmenu[i].GetRect().x && xm <= textmenu[i].GetRect().x + textmenu[i].GetRect().w && ym >= textmenu[i].GetRect().y && ym <= textmenu[i].GetRect().y + textmenu[i].GetRect().h) {
 						if (selected[i] == false) {
 							selected[i] = true;
 							if (i==0)textmenu[0].loadFromRenderedText("NEW GAME", pink,font);
 							if (i==1)textmenu[1].loadFromRenderedText("QUIT", pink, font);
+							if (i==2)textmenu[2].loadFromRenderedText("CONTINUE...", pink, font);
 						}
 					}
 					else {
@@ -96,6 +108,7 @@ int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
 							textmenu[i].Free();
 							if (i == 0)textmenu[0].loadFromRenderedText("NEW GAME", whileblue, font);
 							if (i == 1)textmenu[1].loadFromRenderedText("QUIT", whileblue, font);
+							if (i == 2)textmenu[2].loadFromRenderedText("CONTINUE...", pink, font);
 						}
 					}
 				}
@@ -105,10 +118,11 @@ int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
 				if (gEvent.button.button == SDL_BUTTON_LEFT) {
 					xm = gEvent.button.x;
 					ym = gEvent.button.y;
-					for (int i = 0; i < 2; i++) {
+					for (int i = 0; i < num; i++) {
 						if (xm >= textmenu[i].GetRect().x && xm <= textmenu[i].GetRect().x + textmenu[i].GetRect().w && ym >= textmenu[i].GetRect().y && ym <= textmenu[i].GetRect().y + textmenu[i].GetRect().h) {
 							textmenu[0].Free();
 							textmenu[1].Free();
+							if (haveCo) textmenu[2].Free();
 							Menu.Free();
 							return i;
 						}
@@ -131,6 +145,7 @@ int ShowMenu(SDL_Renderer* des, TTF_Font* font) {
 		Menu.Render(gScreen, NULL);
 		textmenu[0].Render(gScreen, NULL);
 		textmenu[1].Render(gScreen, NULL);
+		if (haveCo) textmenu[2].Render(gScreen, NULL);
 		SDL_RenderPresent(gScreen);
 
 	}
@@ -408,6 +423,11 @@ void close()
 {
 	SDL_DestroyRenderer(gScreen);
 	SDL_DestroyWindow(gWindow);
+	if (gBackGround != NULL)
+	{
+		SDL_DestroyTexture(gBackGround);
+		gBackGround = NULL;
+	}
 	gWindow = NULL;
 	gScreen = NULL;
 	Mix_FreeChunk(gSoundBullet);
@@ -424,15 +444,24 @@ void close()
 
 int main(int argc, char* args[]) {
 	if (!init()) printf("Failed to initialize!\n");//Start up SDL and create window
-
+	ifstream read;
+	read.open("image/continue.txt");
+	read >> haveCo;
 	bool quit = false;
-
+	bool conti = false;
+	int md;
+	double tconti;
 	while (!quit) {
+		
+		
 		int soluongquaibay = 30;
 		double mauquaivat = 50.0;
 		int statemenu = ShowMenu(gScreen, gFont);
 		if (statemenu == 1) {
 			quit = true;
+		}
+		else if (statemenu == 2) {
+			conti = true;
 		}
 		else if (statemenu == 0) {
 			int l = ShowLevel(gScreen, gFont);
@@ -465,14 +494,57 @@ int main(int argc, char* args[]) {
 		player.LoadImg("image//player_run_right.png", gScreen);
 		player.LoadFrame();
 		player.pathHealthPlayer = "image//health_player.png";
-		player.healthPlayerMax = 150.0;
-		player.healthPlayer = player.healthPlayerMax;
 		player.LoadHealPlayer(gScreen);
-		
-		vector<Monster*> monsterList = CreateMonsterList(soluongquaibay, mauquaivat);
+		player.healthPlayerMax = 150.0;
+		player.healthPlayer = 150.0;
+		vector<Monster*> monsterList;
+		if (!conti)  monsterList = CreateMonsterList(soluongquaibay, mauquaivat);
+		if (conti) {
+			double xp, yp;
+			read >> xp >> yp;
+			player.SetXYPosPlayer(xp, yp);
+			double healp;
+			read >> healp;
+			player.healthPlayer = healp;
+			int nmfly;
+			read >> nmfly;
+			int soluongquai;
+			read >> soluongquai;
+			soluongquaibay = soluongquai;
+			read >> mauquaivat;
+			Monster* monsters = new Monster[nmfly];
+			for (int i = 0; i < nmfly; i++) {
+				Monster* onemonster = (monsters + i);
+				if (onemonster != NULL) {
+					double xm, ym, hm;
+					read >> xm >> ym >> hm;
+					onemonster->LoadImg("image/alien_fly_left.png", gScreen);
+					onemonster->pathHealthFlyMonster = "image/health_monster.png";
+					onemonster->healthFlyMonsterMax = mauquaivat;
+					onemonster->healthFlyMonster = hm;
+					onemonster->LoadHealFlyMonster(gScreen);
+					onemonster->LoadFrame();
+					onemonster->SetTypeMove(Monster::F_LEFT);
+					onemonster->SetXpos(xm);
+					onemonster->SetYpos(ym);
+					int pos_a = onemonster->GetXpos() - 300;
+					int pos_b = onemonster->GetXpos() + 300;
+					onemonster->SetMovePos(pos_a, pos_b);
+					monsterList.push_back(onemonster);
+				}
+			}
+			read >> md;
+			read >> mauquaivat;
+			read >> tconti;
+		}
+		read.close();
 		while (quit==false) {
 			int mfdie = 0;
 			statemenu = 2;
+			double timeconti;
+			if (conti) timeconti = tconti;
+			else timeconti = 0;
+			
 			bool isPause = false;
 			while (SDL_PollEvent(&gEvent) != 0) {
 				if (gEvent.type == SDL_QUIT) {
@@ -490,7 +562,11 @@ int main(int argc, char* args[]) {
 				player.HandleAction(gEvent, gScreen, gSoundBullet);
 
 			}
-			
+
+			if (conti) {
+				mfdie = md;
+			}
+
 			SDL_SetRenderDrawColor(gScreen, 0xFF, 0xFF, 0xFF, 0xFF);
 			SDL_RenderClear(gScreen);
 			Map mapgame = map.GetMap();
@@ -515,13 +591,13 @@ int main(int argc, char* args[]) {
 					}
 				}
 			}
-
 			map.SetMap(mapgame);
 			map.RenderMap(gScreen);
 			player.HandleBulletList(gScreen, mapgame, monsterList, gSoundHit);
 			player.HandHealPlayer(gScreen);
 			timeText.str("");
-			timeText << "Time : " << (timer.getTicks() / 1000.f);
+			
+			timeText << "Time : " << (timer.getTicks() / 1000.f + timeconti);
 			if (!gTime.loadFromRenderedText(timeText.str().c_str(), violet, gFont))
 			{
 				printf("Unable to render time texture!\n");
@@ -535,9 +611,15 @@ int main(int argc, char* args[]) {
 			if (player.healthPlayer <= 0) {
 				isLo = true;
 				player.Free();
-				gTime.Free();
 				player.healPlayer.Free();
+				gTime.Free();
 				gFMDie.Free();
+				if (gBackGround != NULL)
+				{
+					SDL_DestroyTexture(gBackGround);
+					gBackGround = NULL;
+				}
+				map.FreeTile();
 				for (int i = 0; i < monsterList.size(); i++) {
 					Monster* onemonster = monsterList.at(i);
 					if (onemonster != NULL) {
@@ -551,6 +633,12 @@ int main(int argc, char* args[]) {
 				gTime.Free();
 				player.healPlayer.Free();
 				gFMDie.Free();
+				if (gBackGround != NULL)
+				{
+					SDL_DestroyTexture(gBackGround);
+					gBackGround = NULL;
+				}
+				map.FreeTile();
 				for (int i = 0; i < monsterList.size(); i++) {
 					Monster* onemonster = monsterList.at(i);
 					if (onemonster != NULL) {
@@ -559,24 +647,77 @@ int main(int argc, char* args[]) {
 				}
 			}
 			SDL_RenderPresent(gScreen);
+			
+
 			if (isPause == true) {
 				int m = ShowPause(gScreen, gFont);
 				if (m == 0) {
 					isPause = false;
 				}
 				else if (m == 1) {
+					player.Free();
+					player.healPlayer.Free();
+					gTime.Free();
+					gFMDie.Free();
+					if (gBackGround != NULL)
+					{
+						SDL_DestroyTexture(gBackGround);
+						gBackGround = NULL;
+					}
+					map.FreeTile();
+					for (int i = 0; i < monsterList.size(); i++) {
+						Monster* onemonster = monsterList.at(i);
+						if (onemonster != NULL) {
+							onemonster->Free();
+						}
+					}
 					break;
 				}
 				else if (m == 2) {
+					player.Free();
+					player.healPlayer.Free();
+					gTime.Free();
+					gFMDie.Free();
+					if (gBackGround != NULL)
+					{
+						SDL_DestroyTexture(gBackGround);
+						gBackGround = NULL;
+					}
+					map.FreeTile();
+					for (int i = 0; i < monsterList.size(); i++) {
+						Monster* onemonster = monsterList.at(i);
+						if (onemonster != NULL) {
+							onemonster->Free();
+						}
+					}
 					quit = true;
-					break;
 				}
+				
 			}
 			if (isWin == true || isLo == true) {
+				ofstream write;
+				write.open("image/continue.txt");
+				write << 0 ;
+				write.close();
 				int n = ShowKetqua(gScreen, gFont, isWin, isLo);
+				player.Free();
+				player.healPlayer.Free();
+				gTime.Free();
+				gFMDie.Free();
+				if (gBackGround != NULL)
+				{
+					SDL_DestroyTexture(gBackGround);
+					gBackGround = NULL;
+				}
+				map.FreeTile();
+				for (int i = 0; i < monsterList.size(); i++) {
+					Monster* onemonster = monsterList.at(i);
+					if (onemonster != NULL) {
+						onemonster->Free();
+					}
+				}
 				if (n == 2) {
 					quit = true;
-					break;
 				}
 				else if (n == 1) {
 					break;
@@ -586,13 +727,31 @@ int main(int argc, char* args[]) {
 				}
 			}
 
+			if (quit == true&&isWin == false&&isLo == false) {
+				ofstream write;
+				write.open("image/continue.txt");
+				write << 1 << " ";
+				write << player.GetXPosPlayer() << " " << player.GetYPosPlayer() << " ";
+				write << player.healthPlayer << " ";
+				write << monsterList.size() << " ";
+				write << soluongquaibay << " ";
+				write << mauquaivat << " ";
+				for (int i = 0; i < monsterList.size(); i++) {
+					Monster* onemonster = monsterList.at(i);
+					if (onemonster != NULL) {
+						write << onemonster->GetXpos() << " " << onemonster->GetYpos() << " " << onemonster->healthFlyMonster << " ";
+					}
+				}
+				write << mfdie;
+				write << " " << mauquaivat;
+				write << " " << (timer.getTicks() / 1000.f + timeconti);
+				write.close();
 
+			}
 
 		}
 
-
 	}
-
 
 
 	close();

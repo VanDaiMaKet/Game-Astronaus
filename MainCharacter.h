@@ -49,6 +49,7 @@ public:
 	void HandleBulletList(SDL_Renderer* des, Map& map, vector<Monster*>& monsterList_, Mix_Chunk* soundHit);
 	double GetXPosPlayer() const { return x_pos_; }
 	double GetYPosPlayer() const { return y_pos_; }
+	void SetXYPosPlayer( double x,  double y) { x_pos_ = x; y_pos_ = y;}
 
 	
 	void HandHealPlayer(SDL_Renderer* des);

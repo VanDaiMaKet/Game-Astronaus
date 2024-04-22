@@ -22,6 +22,11 @@ public:
 	void SetMap(Map& map) {
 		map_ = map;
 	}
+	void FreeTile() {
+		for (int i = 0; i < MAX_TILE_IMAGE; i++) {
+			tileMap_[i].Free();
+		}
+	}
 private:
 	Map map_;
 	TileMapImage tileMap_[MAX_TILE_IMAGE];

@@ -46,7 +46,7 @@ struct KeyPress {
 #define TILE_SIZE 64
 #define MAX_MAP_WIDTH 80
 #define MAX_MAP_HEIGHT 10
-#define MAX_TILE_IMAGE 10
+#define MAX_TILE_IMAGE 8
 
 typedef struct Map {
 	int x_start;//vi tri mep man hinh ben trai so voi ban do full
@@ -56,18 +56,16 @@ typedef struct Map {
 	int tile[MAX_MAP_HEIGHT][MAX_MAP_WIDTH];// mang cac tile
 	string filePath;
 	bool LoadBackground(string path, SDL_Renderer* des) {
-		SDL_Texture* newTexture = NULL;
 		SDL_Surface* loadSurface = IMG_Load(path.c_str());
 		if (loadSurface != NULL)
 		{
-			newTexture = SDL_CreateTextureFromSurface(des, loadSurface);
-			if (newTexture != NULL) {
+			gBackGround = SDL_CreateTextureFromSurface(des, loadSurface);
+			if (gBackGround != NULL) {
 				srcRect.w = loadSurface->w;
 				srcRect.h = loadSurface->h;
 			}
 			SDL_FreeSurface(loadSurface);
 		}
-		gBackGround = newTexture;
 		return gBackGround != NULL;
 	}
 
